@@ -27,7 +27,7 @@ pipeline {
                 sh 'mvn clean install'
             }
         }
-       /* stage('docker-build') {
+        stage('docker-build') {
             steps {
                 echo 'Hello World......docker-build!'
                 sh 'docker build -t tallapakam/students .'
@@ -41,15 +41,15 @@ pipeline {
                 }
                 sh "docker push tallapakam/students"
             }
-        }*/
+        }
         
-        stage('Build Docker Image') {
+        /*stage('Build Docker Image') {
             steps {
                 script {
                     docker.build("${env.IMAGE_NAME}")
                 }
             }
-        }
+        } */
 
         stage('Login to ECR') {
             steps {
