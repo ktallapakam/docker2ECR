@@ -36,6 +36,7 @@ pipeline {
         stage('docker-push-2-DH') {
             steps {
                 echo 'Hello World......docker-push-2-DH!'
+
                 withCredentials([string(credentialsId: 'dockerHubCred', variable: 'docker')]) {
                     sh 'docker login -u tallapakam -p ${docker}'
                 }
