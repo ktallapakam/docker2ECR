@@ -49,8 +49,7 @@ pipeline {
                     docker.build("${env.IMAGE_NAME}")
                 }
             }
-        } */
-
+        } 
         stage('Login to ECR') {
             steps {
                 script {
@@ -62,7 +61,7 @@ pipeline {
             }
         }
   
-       /* stage('TrivyScan') {
+        stage('TrivyScan') {
             steps {
                 script {
                     sh """
@@ -77,7 +76,7 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: "${REPORT_FILE}", fingerprint: true
             }
-        } */
+        } 
 
         stage('Push to ECR') {
             steps {
@@ -85,6 +84,6 @@ pipeline {
                     sh "docker push ${IMAGE_NAME}"
                 }
             }
-        }
+        }*/
     }
 }
