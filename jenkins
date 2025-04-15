@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+    environment {
+        AWS_REGION = 'us-east-1'
+        ECR_REGISTRY = '726292817982.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REPO = 'devops/tallapakam'
+        IMAGE_TAG = "latest"
+        IMAGE_NAME = "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
+        REPORT_FILE = 'trivy-report.txt'
+    }
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World......Hello!'
+            }
+        }
+        stage('git-checkout') {
+            steps {
+                echo 'Hello World......git-checkout!'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'gitCred', url: 'https://github.com/ktallapakam/GoodMorning.git']])
+            }
+        }
+        stage('git-build') {
+            steps {
+                echo 'Hello World......git-build!'
+                sh 'mvn clean install'
+            }
+        }
+       /* stage('docker-build') {
+            steps {
+                echo 'Hello World......docker-build!'
+                sh 'docker build -t tallapakam/students .'
+            }
+        }
+        stage('docker-push-2-DH') {
+            steps {
+                echo 'Hello World......docker-push-2-DH!'
+                withCredentials([string(credentialsId: 'dockerHubCred', variable: 'docker')]) {
+                    sh 'docker login -u tallapakam -p ${docker}'
+                }
+                sh "docker push tallapakam/students"
+            }
+        }*/
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${env.IMAGE_NAME}")
+                }
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                script {
+                    sh """
+                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                    """
+                }
+            }
+        }
+  
+        stage('TrivyScan') {
+            steps {
+                script {
+                    sh """
+                        trivy image --severity HIGH,CRITICAL --no-progress \
+                        --format table --output ${REPORT_FILE} ${IMAGE_NAME}
+                    """
+                }
+            }
+        }
+
+        stage('ArchiveTrivyReport') {
+            steps {
+                archiveArtifacts artifacts: "${REPORT_FILE}", fingerprint: true
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    sh "docker push ${IMAGE_NAME}"
+                }
+            }
+        }
+    }
+}
